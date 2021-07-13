@@ -1,0 +1,118 @@
+---
+title: "Classification and Regression Analysis using British Seatbelt Study Data"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+<!-- https://rpubs.com/pgmenon/seatbeltStudyPGSS2021 -->
+
+## Where to find datasets:  The *datasets* library
+```{r}
+library(datasets)
+
+seatbelts <- datasets::Seatbelts
+print(class(seatbelts))
+
+df <- as.data.frame(seatbelts)
+print(head(df))
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+
+## Load time-series modeling library (XTS and Zoo) and using them to decode the date column in the *datasets::Seatbelts* dataset
+```{r}
+library(zoo)
+library(xts)
+df$Date <- as.Date(time(seatbelts))
+df$law <- as.factor(df$law)  # Convert the factor column into a categorical variable
+print(sapply(df, class) )    # Print the class of each column in our dataset 
+
+```
+## Exploratory analysis of the difference between classes of law=1 and law=0 w.r.t DriversKilled and VanKilled. 
+```{r}
+boxplot(DriversKilled ~ law, data = df)
+t.test(DriversKilled ~ law, data = df)  # Establish the "statistical significance" of the difference of means between law=1 and law=0 w.r.t DriversKilled
+
+boxplot(VanKilled ~ law, data = df)
+t.test(VanKilled ~ law, data = df)     # Establish the "statistical significance" of the difference of means between law=1 and law=0 w.r.t VanKilled
+
+```
+
+## Logistic regression for classification of whether the Law is effect for any given date 
+```{r}
+model <- glm (formula = law ~  DriversKilled + VanKilled, family = "binomial", data = df)
+print(summary(model))
+
+print(exp(model$coefficients))  # Printing the odds of the response of law=1 as evidenced by the coefficents of the logistic fit 
+
+```
+
+## Create predictions of the fit logistic model against our original data - each row being an independent evaluation of the model 
+```{r}
+
+predictionsOfLawInEffect <- predict(model, newdata = df)  # LOG ODDS of each row corresponding to when the law is in effect
+boxplot(predictionsOfLawInEffect ~ df$law)  #Boxplot to find the optimal log-odds cutoff
+
+# Categorize the predicted log odds based on a threshold obtained by inspection of the box plot above: 
+predictionsOfLawInEffect_CATEGORICAL <- predictionsOfLawInEffect > -2
+
+# Lets compare the actual v/s predicted state of law = 1 or 0 in a Confusion Matrix
+print(table(df$law, predictionsOfLawInEffect_CATEGORICAL))  # Confusion matrix
+
+
+```
+
+## Visualize a probability density plot of the predicted odds of the response of law=1 in the predicted set of evaluated records
+
+## ODDS = p / (1 - p); where ODDS = exp(predictionsOfLawInEffect)
+## => (1 - p)*ODDS = p
+## => p = ODDS/(1+ODDS)
+
+```{r}
+plot(density(exp(predictionsOfLawInEffect)))  # plot of the "ODDS" of each row being classified for the law being in effect
+
+```
+
+## Probability of each row  corresponding to the law being in effect: 
+```{r}
+plot(density(exp(predictionsOfLawInEffect)/(1+exp(predictionsOfLawInEffect))))  # plot of the "ODDS" of each row being classified for the law being in effect
+
+print(summary(exp(predictionsOfLawInEffect)/(1+exp(predictionsOfLawInEffect))))
+
+```
+
+# Boxplot to find the optimal probability cutoff for dichotomization of the law=1 status
+```{r}
+boxplot(exp(predictionsOfLawInEffect)/(1+exp(predictionsOfLawInEffect)) ~ df$law)
+
+```
+
+# Perform Linear Regression as an example use-case to predicted drivers that died as a function of the law status of being in effect
+```{r}
+
+# Linear regression for REGRESSION of the number of people that died ON the X's 
+# / regressors law-being-in-effect and total number of drivers  
+
+# Y = number of people that died i.e.  DriversKilled variable
+# X = [law, drivers, PetrolPrice]  # eliminate variables that are confounding the relationship between the predictor and the response of law=1 by logic
+
+model2 <- lm (DriversKilled ~ law  , data = df)
+print(summary(model2))
+
+```
+
+
+## Export df to a file:
+```{r}
+write.csv(df, row.names = F, file = "britishSeatBeltStudy.csv")
+```
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
