@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "cells": [
+    {
+      "type": "cs",
+      "input": "assist"
+    },
+    {
+      "type": "cs",
+      "input": "getFrames"
+    },
+    {
+      "type": "cs",
+      "input": "getFrameSummary \"myData_7202021.hex\""
+    },
+    {
+      "type": "cs",
+      "input": "changeColumnType frame: \"myData_7202021.hex\", column: \"Is this Purple?\", type: 'enum'"
+    },
+    {
+      "type": "cs",
+      "input": "assist runAutoML"
+    },
+    {
+      "type": "cs",
+      "input": "assist splitFrame, \"myData_7202021.hex\""
+    },
+    {
+      "type": "cs",
+      "input": "splitFrame \"myData_7202021.hex\", [0.7], [\"myData_7202021.hex_0.70\",\"myData_7202021.hex_0.30\"], 480817"
+    },
+    {
+      "type": "cs",
+      "input": "runAutoML {\"input_spec\":{\"training_frame\":\"myData_7202021.hex_0.70\",\"response_column\":\"Is this Purple?\",\"validation_frame\":\"myData_7202021.hex_0.30\",\"blending_frame\":\"myData_7202021.hex\",\"leaderboard_frame\":\"myData_7202021.hex\",\"ignored_columns\":[\"Contributor\"],\"sort_metric\":\"AUTO\"},\"build_control\":{\"nfolds\":5,\"balance_classes\":false,\"stopping_criteria\":{\"seed\":-1,\"max_models\":0,\"max_runtime_secs\":360,\"max_runtime_secs_per_model\":30,\"stopping_rounds\":3,\"stopping_metric\":\"AUTO\",\"stopping_tolerance\":-1},\"keep_cross_validation_predictions\":true,\"keep_cross_validation_models\":true,\"keep_cross_validation_fold_assignment\":false,\"export_checkpoints_dir\":\"/content/myModels/\"},\"build_models\":{\"exclude_algos\":[],\"exploitation_ratio\":0,\"monotone_constraints\":[]}}, 'exec'"
+    }
+  ]
+}
